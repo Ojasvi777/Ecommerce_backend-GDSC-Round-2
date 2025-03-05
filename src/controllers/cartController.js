@@ -1,12 +1,10 @@
 import asyncHandler from "express-async-handler";
+import axios from "axios";
 import User from "../models/userModel.js";
 import Product from "../models/productModel.js";
+import Webhook from "../models/webhookModel.js";
 
-/**
- * @desc Add product to cart
- * @route POST /api/cart/add
- * @access Private (Buyer Only)
- */
+// Add product to cart
 export const addToCart = asyncHandler(async (req, res) => {
   const { productId, quantity } = req.body;
 
@@ -47,11 +45,7 @@ export const addToCart = asyncHandler(async (req, res) => {
   res.json(user.cart);
 });
 
-/**
- * @desc Get user's cart
- * @route GET /api/cart
- * @access Private (Buyer Only)
- */
+// Get user's cart
 export const getCart = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).populate("cart.product");
   if (!user) {
@@ -61,11 +55,7 @@ export const getCart = asyncHandler(async (req, res) => {
   res.json(user.cart);
 });
 
-/**
- * @desc Remove product from cart
- * @route DELETE /api/cart/remove/:productId
- * @access Private (Buyer Only)
- */
+// Remove product from cart
 export const removeFromCart = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id);
   if (!user) {
@@ -84,11 +74,7 @@ export const removeFromCart = asyncHandler(async (req, res) => {
   res.json(user.cart);
 });
 
-/**
- * @desc Checkout (deduct balance, update stock, and clear cart)
- * @route POST /api/cart/checkout
- * @access Private (Buyer Only)
- */
+// Checkout (deduct balance, update stock, and clear cart)
 export const checkout = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user.id).populate("cart.product");
   if (!user) {
@@ -127,6 +113,20 @@ export const checkout = asyncHandler(async (req, res) => {
   user.balance -= totalPrice;
   user.cart = [];
   await user.save();
+
+  // Send webhook notification if registered
+  const webhook = await Webhook.findOne({ user: req.user.id });
+  if (webhook) {
+    try {
+      await axios.post(webhook.url, {
+        event: "checkout_complete",
+        message: "Your checkout was successful",
+        balance: user.balance,
+      });
+    } catch (error) {
+      console.error("Webhook failed:", error.message);
+    }
+  }
 
   res.json({ message: "Checkout successful", balance: user.balance });
 });

@@ -1,30 +1,40 @@
 import express from "express";
 import asyncHandler from "express-async-handler";
-import createProductModel from "../models/productModel.js";
+import Product from "../models/productModel.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { isAdmin, isSeller } from "../middleware/roleMiddleware.js";
-
-const Product = createProductModel(); // ✅ Initialize the Product model
+import Coupon from "../models/couponModel.js"; // Import coupon model
 
 const router = express.Router();
 
-// ✅ Get all products with filtering
+// Get all products with pagination, sorting, and filtering
 router.get(
   "/",
   asyncHandler(async (req, res) => {
-    const { category, minPrice, maxPrice } = req.query;
-    let filter = {};
+    const { page = 1, limit = 10, sortBy = "createdAt", order = "desc", category, minPrice, maxPrice } = req.query;
 
+    const filter = {};
     if (category) filter.category = category;
     if (minPrice) filter.price = { ...filter.price, $gte: Number(minPrice) };
     if (maxPrice) filter.price = { ...filter.price, $lte: Number(maxPrice) };
 
-    const products = await Product.find(filter);
-    res.json(products);
+    const products = await Product.find(filter)
+      .sort({ [sortBy]: order === "desc" ? -1 : 1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const totalProducts = await Product.countDocuments(filter);
+
+    res.json({
+      products,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalProducts / limit),
+      totalProducts,
+    });
   })
 );
 
-// ✅ Get single product by ID
+// Get single product by ID
 router.get(
   "/:id",
   asyncHandler(async (req, res) => {
@@ -32,13 +42,12 @@ router.get(
     if (product) {
       res.json(product);
     } else {
-      res.status(404);
-      throw new Error("Product not found");
+      res.status(404).json({ message: "Product not found" });
     }
   })
 );
 
-// ✅ Create a new product (Only sellers and admins)
+// Create a new product (Only sellers and admins)
 router.post(
   "/",
   protect,
@@ -60,7 +69,7 @@ router.post(
   })
 );
 
-// ✅ Update a product (Only sellers and admins)
+// Update a product (Only sellers and admins)
 router.put(
   "/:id",
   protect,
@@ -81,13 +90,12 @@ router.put(
       const updatedProduct = await product.save();
       res.json(updatedProduct);
     } else {
-      res.status(404);
-      throw new Error("Product not found");
+      res.status(404).json({ message: "Product not found" });
     }
   })
 );
 
-// ✅ Delete a product (Only admins)
+// Delete a product (Only admins)
 router.delete(
   "/:id",
   protect,
@@ -99,13 +107,12 @@ router.delete(
       await product.deleteOne();
       res.json({ message: "Product removed" });
     } else {
-      res.status(404);
-      throw new Error("Product not found");
+      res.status(404).json({ message: "Product not found" });
     }
   })
 );
 
-// ✅ Search products by name
+// Search products by name
 router.get(
   "/search/:query",
   asyncHandler(async (req, res) => {
@@ -115,12 +122,55 @@ router.get(
   })
 );
 
-// ✅ Get top-rated products
+// Get top-rated products
 router.get(
   "/top",
   asyncHandler(async (req, res) => {
     const topProducts = await Product.find({}).sort({ rating: -1 }).limit(5);
     res.json(topProducts);
+  })
+);
+
+// Apply a coupon code at checkout (Fixed Expiry Check)
+router.post(
+  "/apply-coupon",
+  protect,
+  asyncHandler(async (req, res) => {
+    const { code, totalAmount } = req.body;
+    const coupon = await Coupon.findOne({ code });
+
+    if (!coupon) {
+      return res.status(400).json({ message: "Invalid coupon code" });
+    }
+
+    if (new Date(coupon.expiry) < new Date()) {
+      return res.status(400).json({ message: "Coupon has expired" });
+    }
+
+    const discountAmount = (coupon.discount / 100) * totalAmount;
+    const discountedPrice = totalAmount - discountAmount;
+
+    res.json({ success: true, discount: discountAmount, finalPrice: discountedPrice });
+  })
+);
+
+// Create a coupon (Only sellers and admins)
+router.post(
+  "/create-coupon",
+  protect,
+  isSeller,
+  asyncHandler(async (req, res) => {
+    const { code, discount, expiry } = req.body;
+
+    const existingCoupon = await Coupon.findOne({ code });
+    if (existingCoupon) {
+      return res.status(400).json({ message: "Coupon code already exists" });
+    }
+
+    const coupon = new Coupon({ code, discount, expiry });
+    await coupon.save();
+
+    res.status(201).json({ message: "Coupon created successfully", coupon });
   })
 );
 
