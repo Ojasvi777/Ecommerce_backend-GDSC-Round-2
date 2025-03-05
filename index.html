@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-blue-600 text-white p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">E-Commerce Marketplace</h1>
+        <nav>
+            <button onclick="openCart()" class="bg-white text-blue-600 px-4 py-2 rounded">🛒 Cart (<span id="cart-count">0</span>)</button>
+        </nav>
+    </header>
+    
+    <div class="container mx-auto p-6">
+        <h2 class="text-2xl font-semibold mb-4">Our Products</h2>
+        <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Products will be dynamically loaded here -->
+        </div>
+    </div>
+    
+    <div id="cart-sidebar" class="fixed top-0 right-[-100%] w-80 h-full bg-white shadow-lg p-4 transition-all">
+        <h2 class="text-xl font-bold">Your Cart</h2>
+        <div id="cart-items" class="my-4"></div>
+        <p class="font-semibold">Total: $<span id="cart-total">0</span></p>
+        <button onclick="checkout()" class="bg-green-500 text-white px-4 py-2 rounded mt-2">Checkout</button>
+        <button onclick="closeCart()" class="bg-red-500 text-white px-4 py-2 rounded mt-2">Close</button>
+    </div>
+    
+    <script>
+        const apiUrl = 'http://localhost:5000/api';
+        let cart = [];
+        
+        async function fetchProducts() {
+            const response = await fetch(`${apiUrl}/products`);
+            const products = await response.json();
+            renderProducts(products);
+        }
+
+        function renderProducts(products) {
+            const productGrid = document.getElementById('product-grid');
+            productGrid.innerHTML = '';
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.classList.add('bg-white', 'p-4', 'shadow-md', 'rounded');
+                productCard.innerHTML = `
+                    <h3 class="text-lg font-semibold">${product.name}</h3>
+                    <p class="text-sm">${product.description}</p>
+                    <p class="text-blue-600 font-bold">$${product.price.toFixed(2)}</p>
+                    <button onclick="addToCart('${product._id}')" class="bg-blue-500 text-white px-4 py-2 mt-2 rounded">Add to Cart</button>
+                `;
+                productGrid.appendChild(productCard);
+            });
+        }
+
+        async function addToCart(productId) {
+            const response = await fetch(`${apiUrl}/cart`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, quantity: 1 })
+            });
+            updateCartDisplay();
+        }
+
+        async function updateCartDisplay() {
+            const response = await fetch(`${apiUrl}/cart`);
+            cart = await response.json();
+            const cartItemsEl = document.getElementById('cart-items');
+            const cartTotalEl = document.getElementById('cart-total');
+            const cartCountEl = document.getElementById('cart-count');
+            
+            cartItemsEl.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.product.price * item.quantity;
+                const cartItemEl = document.createElement('div');
+                cartItemEl.innerHTML = `
+                    ${item.product.name} - $${item.product.price.toFixed(2)} x ${item.quantity}
+                    <button onclick="removeFromCart('${item.product._id}')" class="text-red-500">Remove</button>
+                `;
+                cartItemsEl.appendChild(cartItemEl);
+            });
+            
+            cartTotalEl.textContent = total.toFixed(2);
+            cartCountEl.textContent = cart.length;
+        }
+
+        async function removeFromCart(productId) {
+            await fetch(`${apiUrl}/cart/${productId}`, { method: 'DELETE' });
+            updateCartDisplay();
+        }
+
+        function openCart() {
+            document.getElementById('cart-sidebar').style.right = '0';
+        }
+
+        function closeCart() {
+            document.getElementById('cart-sidebar').style.right = '-100%';
+        }
+
+        async function checkout() {
+            await fetch(`${apiUrl}/checkout`, { method: 'POST' });
+            alert('Checkout successful!');
+            updateCartDisplay();
+            closeCart();
+        }
+
+        fetchProducts();
+        updateCartDisplay();
+    </script>
+</body>
+</html>
