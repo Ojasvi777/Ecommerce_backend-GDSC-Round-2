@@ -8,7 +8,7 @@ import productRoutes from "./src/routes/productRoutes.js";
 import userRoutes from "./src/routes/userRoutes.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
 import paymentRoutes from "./src/routes/paymentRoutes.js";
-import cartRoutes from "./src/routes/cartRoutes.js"; // ✅ Un-commented since it's needed
+import cartRoutes from "./src/routes/cartRoutes.js"; 
 
 // Load environment variables
 dotenv.config();

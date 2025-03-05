@@ -7,7 +7,17 @@ import User from "../models/userModel.js";  // ✅ Direct import
 
 const router = express.Router();
 
-// ✅ User Profile Route
+// ✅ Get all users (Admin only)
+router.get(
+  "/",
+  protect,
+  asyncHandler(async (req, res) => {
+    const users = await User.find({}).select("-password");
+    res.json(users);
+  })
+);
+
+// ✅ Get user profile
 router.get(
   "/profile",
   protect,
@@ -26,7 +36,7 @@ router.get(
 router.post(
   "/register",
   asyncHandler(async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, isSeller } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -38,13 +48,19 @@ router.post(
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = await User.create({ name, email, password: hashedPassword });
+    const user = await User.create({ 
+      name, 
+      email, 
+      password: hashedPassword, 
+      isSeller: isSeller || false 
+    });
 
     if (user) {
       res.status(201).json({
         _id: user._id,
         name: user.name,
         email: user.email,
+        isSeller: user.isSeller,
         token: generateToken(user._id),
       });
     } else {
@@ -67,11 +83,60 @@ router.post(
         _id: user._id,
         name: user.name,
         email: user.email,
+        isSeller: user.isSeller,
         token: generateToken(user._id),
       });
     } else {
       res.status(401);
       throw new Error("Invalid email or password");
+    }
+  })
+);
+
+// ✅ Update user profile
+router.put(
+  "/profile",
+  protect,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.id);
+
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      if (req.body.password) {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.password, salt);
+      }
+
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isSeller: updatedUser.isSeller,
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404);
+      throw new Error("User not found");
+    }
+  })
+);
+
+// ✅ Delete user (Admin only)
+router.delete(
+  "/:id",
+  protect,
+  asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    if (user) {
+      await user.deleteOne();
+      res.json({ message: "User deleted successfully" });
+    } else {
+      res.status(404);
+      throw new Error("User not found");
     }
   })
 );
