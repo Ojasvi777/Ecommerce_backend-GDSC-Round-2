@@ -1,0 +1,13 @@
+{
+    "restartable": "rs",
+    "ignore": ["node_modules/**"],
+    "verbose": true,
+    "execMap": {
+      "js": "node --require dotenv/config"
+    },
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "ext": "js json"
+  }
+  

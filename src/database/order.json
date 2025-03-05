@@ -1,0 +1,27 @@
+[
+    {
+      "user": "John Doe",
+      "orderItems": [
+        {
+          "name": "Apple iPhone 15",
+          "price": 999,
+          "quantity": 1
+        }
+      ],
+      "totalPrice": 999,
+      "status": "Processing"
+    },
+    {
+      "user": "Jane Smith",
+      "orderItems": [
+        {
+          "name": "Nike Air Max Shoes",
+          "price": 120,
+          "quantity": 2
+        }
+      ],
+      "totalPrice": 240,
+      "status": "Shipped"
+    }
+  ]
+  

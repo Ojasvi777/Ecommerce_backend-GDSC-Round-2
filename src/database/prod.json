@@ -1,0 +1,53 @@
+[
+    {
+      "name": "Apple iPhone 15",
+      "description": "Latest Apple iPhone with A16 Bionic chip",
+      "price": 999,
+      "category": "Electronics",
+      "stock": 10,
+      "image": "https://example.com/iphone15.jpg",
+      "rating": 4.8,
+      "numReviews": 20
+    },
+    {
+      "name": "Samsung Galaxy S24",
+      "description": "Samsung's latest flagship phone with AMOLED display",
+      "price": 899,
+      "category": "Electronics",
+      "stock": 15,
+      "image": "https://example.com/galaxy-s24.jpg",
+      "rating": 4.7,
+      "numReviews": 18
+    },
+    {
+      "name": "Sony WH-1000XM5 Headphones",
+      "description": "Noise-canceling wireless headphones",
+      "price": 349,
+      "category": "Electronics",
+      "stock": 25,
+      "image": "https://example.com/sony-headphones.jpg",
+      "rating": 4.9,
+      "numReviews": 30
+    },
+    {
+      "name": "Dell XPS 15 Laptop",
+      "description": "High-performance laptop with Intel Core i9",
+      "price": 1799,
+      "category": "Computers",
+      "stock": 5,
+      "image": "https://example.com/dell-xps.jpg",
+      "rating": 4.6,
+      "numReviews": 12
+    },
+    {
+      "name": "Nike Air Max Shoes",
+      "description": "Comfortable sports shoes",
+      "price": 120,
+      "category": "Fashion",
+      "stock": 50,
+      "image": "https://example.com/nike-shoes.jpg",
+      "rating": 4.5,
+      "numReviews": 25
+    }
+  ]
+  

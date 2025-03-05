@@ -1,0 +1,33 @@
+[
+    {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "password": "hashedpassword123",
+      "isAdmin": false
+    },
+    {
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "password": "hashedpassword456",
+      "isAdmin": true
+    },
+    {
+      "name": "David Johnson",
+      "email": "david@example.com",
+      "password": "hashedpassword789",
+      "isAdmin": false
+    },
+    {
+      "name": "Emily Williams",
+      "email": "emily@example.com",
+      "password": "hashedpassword101",
+      "isAdmin": false
+    },
+    {
+      "name": "Michael Brown",
+      "email": "michael@example.com",
+      "password": "hashedpassword202",
+      "isAdmin": true
+    }
+  ]
+  
