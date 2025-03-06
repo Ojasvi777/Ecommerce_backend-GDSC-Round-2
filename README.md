@@ -87,11 +87,6 @@ Server will run at: `http://localhost:5000`
 | POST   | `/api/orders` | Place an order |
 | GET    | `/api/orders` | Fetch user orders |
 
-## 🧪 Testing
-### Run test script to check all APIs:
-```sh
-node testBackend.js
-```
 
 Contributed by:
 Ojasvi
