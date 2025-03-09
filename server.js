@@ -22,8 +22,8 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(express.json()); // Parse JSON request bodies
-app.use(cors()); // Enable CORS for frontend communication
+app.use(express.json()); 
+app.use(cors()); 
 
 // Serve the frontend (index.html)
 const __dirname = path.resolve();
@@ -36,7 +36,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 
-// ✅ Test Route: Fetch All Products (for Testing Backend Connection)
+//Test Route: Fetch All Products (for Testing Backend Connection)
 app.get("/test/products", async (req, res) => {
   try {
     const products = await Product.find();
