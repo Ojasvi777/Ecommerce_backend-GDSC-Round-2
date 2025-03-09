@@ -36,17 +36,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 
-//Test Route: Fetch All Products (for Testing Backend Connection)
-app.get("/test/products", async (req, res) => {
-  try {
-    const products = await Product.find();
-    console.log("✅ Products Retrieved:", products);
-    res.json(products);
-  } catch (error) {
-    console.error("❌ Error fetching products:", error.message);
-    res.status(500).json({ message: "Server Error", error: error.message });
-  }
-});
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
